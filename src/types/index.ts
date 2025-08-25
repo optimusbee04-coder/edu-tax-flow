@@ -1,14 +1,24 @@
 export interface StudentRecord {
   id: string;
-  name: string;
-  email: string;
-  state: string;
-  course: string;
-  bankIncome: number;
-  otherIncome?: number;
-  totalIncome: number;
+  regNo: string;
+  coursecode: string;
+  branchcode: string;
+  year: number;
+  semester: number;
+  date: string;
+  openBalance: number;
+  regfee: number;
+  cda: number;
+  insurance: number;
+  amount: number;
+  examfee: number;
+  cancelled: string;
+  recno: string;
+  chno: string;
+  totalPaid: number;
+  pmode: string;
   calculatedTax: number;
-  netIncome: number;
+  netAmount: number;
   processed: boolean;
 }
 
@@ -19,19 +29,22 @@ export interface TaxSlab {
 }
 
 export interface AnalyticsData {
-  totalIncome: number;
+  totalAmount: number;
   totalTax: number;
+  totalFees: number;
   avgTax: number;
   totalStudents: number;
-  incomeByMonth: { month: string; income: number; tax: number }[];
-  incomeByCourse: { course: string; income: number; students: number }[];
-  incomeByState: { state: string; income: number; tax: number; students: number }[];
+  feesByMonth: { month: string; fees: number; tax: number }[];
+  feesByCourse: { course: string; fees: number; students: number }[];
+  feesByPaymentMode: { pmode: string; amount: number; count: number }[];
+  feesByBranch: { branch: string; fees: number; students: number }[];
 }
 
 export interface AppSettings {
-  homeState: string;
+  instituteName: string;
   defaultTaxRate: number;
   currencySymbol: string;
+  academicYear: string;
 }
 
 export interface AppState {

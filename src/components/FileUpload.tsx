@@ -99,7 +99,7 @@ export const FileUpload = () => {
                 }
               </p>
               <p className="text-sm text-muted-foreground">
-                Required columns: Name, Email, State, Course, Bank Income
+                Required columns: Reg No, coursecode, branchcode, year, semester, date, amount, totalPaid, pmode
               </p>
             </div>
             

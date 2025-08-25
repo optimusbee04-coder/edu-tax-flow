@@ -25,9 +25,10 @@ export const SettingsModal = () => {
 
   const handleReset = () => {
     const defaultSettings = {
-      homeState: 'Delhi',
+      instituteName: 'Student Institute',
       defaultTaxRate: 0.1,
       currencySymbol: '₹',
+      academicYear: '2024-25',
     };
     setLocalSettings(defaultSettings);
     updateSettings(defaultSettings);
@@ -60,16 +61,30 @@ export const SettingsModal = () => {
               </h3>
               
               <div className="space-y-2">
-                <Label htmlFor="homeState" className="text-sm">
-                  Home State
+                <Label htmlFor="instituteName" className="text-sm">
+                  Institute Name
                 </Label>
                 <Input
-                  id="homeState"
-                  value={localSettings.homeState}
+                  id="instituteName"
+                  value={localSettings.instituteName}
                   onChange={(e) =>
-                    setLocalSettings(prev => ({ ...prev, homeState: e.target.value }))
+                    setLocalSettings(prev => ({ ...prev, instituteName: e.target.value }))
                   }
-                  placeholder="Enter your home state"
+                  placeholder="Enter institute name"
+                />
+              </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="academicYear" className="text-sm">
+                  Academic Year
+                </Label>
+                <Input
+                  id="academicYear"
+                  value={localSettings.academicYear}
+                  onChange={(e) =>
+                    setLocalSettings(prev => ({ ...prev, academicYear: e.target.value }))
+                  }
+                  placeholder="2024-25"
                 />
               </div>
 

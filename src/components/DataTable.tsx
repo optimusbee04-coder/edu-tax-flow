@@ -20,40 +20,48 @@ export const DataTable = () => {
 
   const columns = useMemo(
     () => [
-      columnHelper.accessor('name', {
-        header: 'Name',
+      columnHelper.accessor('regNo', {
+        header: 'Reg No',
         cell: (info) => (
           <div className="font-medium text-card-foreground">
             {info.getValue()}
           </div>
         ),
       }),
-      columnHelper.accessor('email', {
-        header: 'Email',
+      columnHelper.accessor('coursecode', {
+        header: 'Course',
         cell: (info) => (
-          <div className="text-muted-foreground text-sm">
+          <div className="px-2 py-1 bg-primary/10 text-primary rounded-md text-xs font-medium">
             {info.getValue()}
           </div>
         ),
       }),
-      columnHelper.accessor('state', {
-        header: 'State',
+      columnHelper.accessor('branchcode', {
+        header: 'Branch',
         cell: (info) => (
           <div className="px-2 py-1 bg-muted rounded-md text-xs font-medium">
             {info.getValue()}
           </div>
         ),
       }),
-      columnHelper.accessor('course', {
-        header: 'Course',
+      columnHelper.accessor('year', {
+        header: 'Year',
         cell: (info) => (
-          <div className="text-card-foreground font-medium">
+          <div className="text-center font-medium">
             {info.getValue()}
           </div>
         ),
       }),
-      columnHelper.accessor('totalIncome', {
-        header: 'Total Income',
+      columnHelper.accessor('semester', {
+        header: 'Sem',
+        cell: (info) => (
+          <div className="text-center font-medium">
+            {info.getValue()}
+          </div>
+        ),
+      }),
+      columnHelper.accessor('totalPaid', {
+        header: 'Total Paid',
         cell: (info) => (
           <div className="text-success font-semibold">
             {settings.currencySymbol}{info.getValue().toLocaleString()}
@@ -68,11 +76,19 @@ export const DataTable = () => {
           </div>
         ),
       }),
-      columnHelper.accessor('netIncome', {
-        header: 'Net Income',
+      columnHelper.accessor('netAmount', {
+        header: 'Net Amount',
         cell: (info) => (
           <div className="text-primary font-semibold">
             {settings.currencySymbol}{info.getValue().toLocaleString()}
+          </div>
+        ),
+      }),
+      columnHelper.accessor('pmode', {
+        header: 'Payment Mode',
+        cell: (info) => (
+          <div className="text-xs text-muted-foreground">
+            {info.getValue()}
           </div>
         ),
       }),
@@ -93,7 +109,7 @@ export const DataTable = () => {
       <Card className="card-elevated">
         <CardContent className="p-8 text-center">
           <div className="text-muted-foreground">
-            Upload a file to view student data
+            Upload a file to view student fee data
           </div>
         </CardContent>
       </Card>
@@ -104,7 +120,7 @@ export const DataTable = () => {
     <Card className="card-elevated">
       <CardHeader>
         <div className="flex items-center justify-between">
-          <CardTitle className="text-xl gradient-text">Student Records</CardTitle>
+          <CardTitle className="text-xl gradient-text">Student Fee Records</CardTitle>
           <div className="relative">
             <FiSearch className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground h-4 w-4" />
             <Input

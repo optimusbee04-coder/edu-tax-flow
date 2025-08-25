@@ -5,14 +5,25 @@ import { z } from 'zod';
 import { toast } from 'sonner';
 import { AppState, StudentRecord, TaxSlab, AnalyticsData } from '../types';
 
-// Validation schema
+// Validation schema for the actual database structure
 const studentSchema = z.object({
-  name: z.string().min(1, 'Name is required'),
-  email: z.string().email('Invalid email format'),
-  state: z.string().min(1, 'State is required'),
-  course: z.string().min(1, 'Course is required'),
-  bankIncome: z.number().min(0, 'Bank income must be positive'),
-  otherIncome: z.number().optional().default(0),
+  regNo: z.string().min(1, 'Registration number is required'),
+  coursecode: z.string().min(1, 'Course code is required'),
+  branchcode: z.string().min(1, 'Branch code is required'),
+  year: z.number().min(1, 'Year must be positive'),
+  semester: z.number().min(1, 'Semester must be positive'),
+  date: z.string().min(1, 'Date is required'),
+  openBalance: z.number().min(0, 'Open balance must be non-negative').default(0),
+  regfee: z.number().min(0, 'Registration fee must be non-negative').default(0),
+  cda: z.number().min(0, 'CDA must be non-negative').default(0),
+  insurance: z.number().min(0, 'Insurance must be non-negative').default(0),
+  amount: z.number().min(0, 'Amount must be non-negative'),
+  examfee: z.number().min(0, 'Exam fee must be non-negative').default(0),
+  cancelled: z.string().default('N'),
+  recno: z.string().min(1, 'Receipt number is required'),
+  chno: z.string().min(1, 'Cheque/Reference number is required'),
+  totalPaid: z.number().min(0, 'Total paid must be non-negative'),
+  pmode: z.string().min(1, 'Payment mode is required'),
 });
 
 // Tax calculation slabs
@@ -26,11 +37,11 @@ const taxSlabs: TaxSlab[] = [
   { min: 2400001, max: Infinity, rate: 0.30 },
 ];
 
-const calculateTax = (income: number): number => {
+const calculateTax = (totalAmount: number): number => {
   let tax = 0;
   for (const slab of taxSlabs) {
-    if (income > slab.min) {
-      const taxableAmount = Math.min(income, slab.max) - slab.min + 1;
+    if (totalAmount > slab.min) {
+      const taxableAmount = Math.min(totalAmount, slab.max) - slab.min + 1;
       tax += taxableAmount * slab.rate;
     }
   }
@@ -38,52 +49,67 @@ const calculateTax = (income: number): number => {
 };
 
 const generateAnalytics = (students: StudentRecord[]): AnalyticsData => {
-  const totalIncome = students.reduce((sum, s) => sum + s.totalIncome, 0);
+  const totalAmount = students.reduce((sum, s) => sum + s.totalPaid, 0);
   const totalTax = students.reduce((sum, s) => sum + s.calculatedTax, 0);
+  const totalFees = students.reduce((sum, s) => sum + s.regfee + s.examfee + s.cda + s.insurance, 0);
   
   // Group by course
   const courseGroups = students.reduce((acc, student) => {
-    if (!acc[student.course]) {
-      acc[student.course] = { income: 0, students: 0 };
+    if (!acc[student.coursecode]) {
+      acc[student.coursecode] = { fees: 0, students: 0 };
     }
-    acc[student.course].income += student.totalIncome;
-    acc[student.course].students += 1;
+    acc[student.coursecode].fees += student.totalPaid;
+    acc[student.coursecode].students += 1;
     return acc;
-  }, {} as Record<string, { income: number; students: number }>);
+  }, {} as Record<string, { fees: number; students: number }>);
 
-  // Group by state
-  const stateGroups = students.reduce((acc, student) => {
-    if (!acc[student.state]) {
-      acc[student.state] = { income: 0, tax: 0, students: 0 };
+  // Group by branch
+  const branchGroups = students.reduce((acc, student) => {
+    if (!acc[student.branchcode]) {
+      acc[student.branchcode] = { fees: 0, students: 0 };
     }
-    acc[student.state].income += student.totalIncome;
-    acc[student.state].tax += student.calculatedTax;
-    acc[student.state].students += 1;
+    acc[student.branchcode].fees += student.totalPaid;
+    acc[student.branchcode].students += 1;
     return acc;
-  }, {} as Record<string, { income: number; tax: number; students: number }>);
+  }, {} as Record<string, { fees: number; students: number }>);
 
-  // Mock monthly data (in real app, this would be based on dates)
-  const incomeByMonth = [
-    { month: 'Jan', income: totalIncome * 0.1, tax: totalTax * 0.1 },
-    { month: 'Feb', income: totalIncome * 0.15, tax: totalTax * 0.15 },
-    { month: 'Mar', income: totalIncome * 0.2, tax: totalTax * 0.2 },
-    { month: 'Apr', income: totalIncome * 0.25, tax: totalTax * 0.25 },
-    { month: 'May', income: totalIncome * 0.2, tax: totalTax * 0.2 },
-    { month: 'Jun', income: totalIncome * 0.1, tax: totalTax * 0.1 },
+  // Group by payment mode
+  const pmodeGroups = students.reduce((acc, student) => {
+    if (!acc[student.pmode]) {
+      acc[student.pmode] = { amount: 0, count: 0 };
+    }
+    acc[student.pmode].amount += student.totalPaid;
+    acc[student.pmode].count += 1;
+    return acc;
+  }, {} as Record<string, { amount: number; count: number }>);
+
+  // Mock monthly data (in real app, this would be based on actual dates)
+  const feesByMonth = [
+    { month: 'Jan', fees: totalAmount * 0.1, tax: totalTax * 0.1 },
+    { month: 'Feb', fees: totalAmount * 0.15, tax: totalTax * 0.15 },
+    { month: 'Mar', fees: totalAmount * 0.2, tax: totalTax * 0.2 },
+    { month: 'Apr', fees: totalAmount * 0.25, tax: totalTax * 0.25 },
+    { month: 'May', fees: totalAmount * 0.2, tax: totalTax * 0.2 },
+    { month: 'Jun', fees: totalAmount * 0.1, tax: totalTax * 0.1 },
   ];
 
   return {
-    totalIncome,
+    totalAmount,
     totalTax,
+    totalFees,
     avgTax: totalTax / students.length || 0,
     totalStudents: students.length,
-    incomeByMonth,
-    incomeByCourse: Object.entries(courseGroups).map(([course, data]) => ({
+    feesByMonth,
+    feesByCourse: Object.entries(courseGroups).map(([course, data]) => ({
       course,
       ...data,
     })),
-    incomeByState: Object.entries(stateGroups).map(([state, data]) => ({
-      state,
+    feesByPaymentMode: Object.entries(pmodeGroups).map(([pmode, data]) => ({
+      pmode,
+      ...data,
+    })),
+    feesByBranch: Object.entries(branchGroups).map(([branch, data]) => ({
+      branch,
       ...data,
     })),
   };
@@ -96,9 +122,10 @@ export const useStore = create<AppState>()(
       students: [],
       analytics: null,
       settings: {
-        homeState: 'Delhi',
+        instituteName: 'Student Institute',
         defaultTaxRate: 0.1,
         currencySymbol: '₹',
+        academicYear: '2024-25',
       },
       isUploading: false,
       isProcessing: false,
@@ -122,23 +149,32 @@ export const useStore = create<AppState>()(
           jsonData.forEach((row: any, index) => {
             try {
               const validated = studentSchema.parse({
-                name: row.Name || row.name,
-                email: row.Email || row.email,
-                state: row.State || row.state,
-                course: row.Course || row.course,
-                bankIncome: Number(row['Bank Income'] || row.bankIncome || 0),
-                otherIncome: Number(row['Other Income'] || row.otherIncome || 0),
+                regNo: String(row['Reg No'] || row.regNo || ''),
+                coursecode: String(row.coursecode || row.courseCode || ''),
+                branchcode: String(row.branchcode || row.branchCode || ''),
+                year: Number(row.year || 0),
+                semester: Number(row.semester || 0),
+                date: String(row.date || ''),
+                openBalance: Number(row['open balance'] || row.openBalance || 0),
+                regfee: Number(row.regfee || 0),
+                cda: Number(row.cda || 0),
+                insurance: Number(row.insurance || 0),
+                amount: Number(row.amount || 0),
+                examfee: Number(row.examfee || 0),
+                cancelled: String(row.cancelled || 'N'),
+                recno: String(row.recno || ''),
+                chno: String(row.chno || ''),
+                totalPaid: Number(row['Total paid'] || row.totalPaid || 0),
+                pmode: String(row.pmode || ''),
               });
 
-              const totalIncome = validated.bankIncome + (validated.otherIncome || 0);
-              const calculatedTax = calculateTax(totalIncome);
+              const calculatedTax = calculateTax(validated.totalPaid);
 
               validatedStudents.push({
                 id: `student-${Date.now()}-${index}`,
                 ...validated,
-                totalIncome,
                 calculatedTax,
-                netIncome: totalIncome - calculatedTax,
+                netAmount: validated.totalPaid - calculatedTax,
                 processed: true,
               });
             } catch (error) {

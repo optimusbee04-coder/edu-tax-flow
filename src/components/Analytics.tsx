@@ -12,7 +12,7 @@ import {
   LineChart,
   Line,
 } from 'recharts';
-import { FiTrendingUp, FiUsers, FiDollarSign, FiMapPin } from 'react-icons/fi';
+import { FiTrendingUp, FiUsers, FiDollarSign, FiCreditCard } from 'react-icons/fi';
 import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
 import { useStore } from '../store/useStore';
 
@@ -60,13 +60,13 @@ export const Analytics = () => {
       {/* KPI Cards */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
         <KPICard
-          title="Total Revenue"
-          value={`${currencySymbol}${analytics.totalIncome.toLocaleString()}`}
+          title="Total Amount Collected"
+          value={`${currencySymbol}${analytics.totalAmount.toLocaleString()}`}
           icon={FiDollarSign}
           trend="+12.3%"
         />
         <KPICard
-          title="Total Tax Collected"
+          title="Total Tax Calculated"
           value={`${currencySymbol}${analytics.totalTax.toLocaleString()}`}
           icon={FiTrendingUp}
           trend="+8.1%"
@@ -80,20 +80,20 @@ export const Analytics = () => {
         <KPICard
           title="Average Tax"
           value={`${currencySymbol}${Math.round(analytics.avgTax).toLocaleString()}`}
-          icon={FiMapPin}
+          icon={FiCreditCard}
           trend="+2.8%"
         />
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        {/* Monthly Income & Tax */}
+        {/* Monthly Fees & Tax */}
         <Card className="card-elevated">
           <CardHeader>
-            <CardTitle className="gradient-text">Monthly Income & Tax</CardTitle>
+            <CardTitle className="gradient-text">Monthly Fees & Tax</CardTitle>
           </CardHeader>
           <CardContent>
             <ResponsiveContainer width="100%" height={300}>
-              <LineChart data={analytics.incomeByMonth}>
+              <LineChart data={analytics.feesByMonth}>
                 <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--muted))" />
                 <XAxis dataKey="month" stroke="hsl(var(--muted-foreground))" />
                 <YAxis stroke="hsl(var(--muted-foreground))" />
@@ -105,12 +105,12 @@ export const Analytics = () => {
                   }}
                   formatter={(value: number, name: string) => [
                     `${currencySymbol}${value.toLocaleString()}`,
-                    name === 'income' ? 'Income' : 'Tax'
+                    name === 'fees' ? 'Fees' : 'Tax'
                   ]}
                 />
                 <Line
                   type="monotone"
-                  dataKey="income"
+                  dataKey="fees"
                   stroke={CHART_COLORS[0]}
                   strokeWidth={2}
                   dot={{ fill: CHART_COLORS[0] }}
@@ -127,45 +127,45 @@ export const Analytics = () => {
           </CardContent>
         </Card>
 
-        {/* Income by Course */}
+        {/* Fees by Course */}
         <Card className="card-elevated">
           <CardHeader>
-            <CardTitle className="gradient-text">Income by Course</CardTitle>
+            <CardTitle className="gradient-text">Fees by Course</CardTitle>
           </CardHeader>
           <CardContent>
             <ResponsiveContainer width="100%" height={300}>
               <PieChart>
                 <Pie
-                  data={analytics.incomeByCourse}
+                  data={analytics.feesByCourse}
                   cx="50%"
                   cy="50%"
                   outerRadius={100}
                   fill="#8884d8"
-                  dataKey="income"
+                  dataKey="fees"
                   label={({ course, percent }) => `${course} (${(percent * 100).toFixed(1)}%)`}
                 >
-                  {analytics.incomeByCourse.map((_, index) => (
+                  {analytics.feesByCourse.map((_, index) => (
                     <Cell key={`cell-${index}`} fill={CHART_COLORS[index % CHART_COLORS.length]} />
                   ))}
                 </Pie>
                 <Tooltip
-                  formatter={(value: number) => [`${currencySymbol}${value.toLocaleString()}`, 'Income']}
+                  formatter={(value: number) => [`${currencySymbol}${value.toLocaleString()}`, 'Fees']}
                 />
               </PieChart>
             </ResponsiveContainer>
           </CardContent>
         </Card>
 
-        {/* State-wise Income */}
-        <Card className="card-elevated lg:col-span-2">
+        {/* Payment Mode Analysis */}
+        <Card className="card-elevated">
           <CardHeader>
-            <CardTitle className="gradient-text">State-wise Income & Tax</CardTitle>
+            <CardTitle className="gradient-text">Payment Mode Distribution</CardTitle>
           </CardHeader>
           <CardContent>
             <ResponsiveContainer width="100%" height={300}>
-              <BarChart data={analytics.incomeByState}>
+              <BarChart data={analytics.feesByPaymentMode}>
                 <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--muted))" />
-                <XAxis dataKey="state" stroke="hsl(var(--muted-foreground))" />
+                <XAxis dataKey="pmode" stroke="hsl(var(--muted-foreground))" />
                 <YAxis stroke="hsl(var(--muted-foreground))" />
                 <Tooltip
                   contentStyle={{
@@ -174,12 +174,39 @@ export const Analytics = () => {
                     borderRadius: '8px',
                   }}
                   formatter={(value: number, name: string) => [
-                    `${currencySymbol}${value.toLocaleString()}`,
-                    name === 'income' ? 'Income' : 'Tax'
+                    name === 'amount' ? `${currencySymbol}${value.toLocaleString()}` : value,
+                    name === 'amount' ? 'Amount' : 'Count'
                   ]}
                 />
-                <Bar dataKey="income" fill={CHART_COLORS[0]} radius={[4, 4, 0, 0]} />
-                <Bar dataKey="tax" fill={CHART_COLORS[1]} radius={[4, 4, 0, 0]} />
+                <Bar dataKey="amount" fill={CHART_COLORS[0]} radius={[4, 4, 0, 0]} />
+              </BarChart>
+            </ResponsiveContainer>
+          </CardContent>
+        </Card>
+
+        {/* Branch-wise Fees */}
+        <Card className="card-elevated">
+          <CardHeader>
+            <CardTitle className="gradient-text">Branch-wise Fee Collection</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <ResponsiveContainer width="100%" height={300}>
+              <BarChart data={analytics.feesByBranch}>
+                <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--muted))" />
+                <XAxis dataKey="branch" stroke="hsl(var(--muted-foreground))" />
+                <YAxis stroke="hsl(var(--muted-foreground))" />
+                <Tooltip
+                  contentStyle={{
+                    backgroundColor: 'hsl(var(--card))',
+                    border: '1px solid hsl(var(--card-border))',
+                    borderRadius: '8px',
+                  }}
+                  formatter={(value: number, name: string) => [
+                    name === 'fees' ? `${currencySymbol}${value.toLocaleString()}` : value,
+                    name === 'fees' ? 'Fees' : 'Students'
+                  ]}
+                />
+                <Bar dataKey="fees" fill={CHART_COLORS[2]} radius={[4, 4, 0, 0]} />
               </BarChart>
             </ResponsiveContainer>
           </CardContent>

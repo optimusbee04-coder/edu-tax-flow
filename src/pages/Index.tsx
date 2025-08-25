@@ -18,8 +18,8 @@ const Index = () => {
               <span className="gradient-text">TaxCalc Pro</span>
             </h1>
             <p className="text-xl text-muted-foreground max-w-2xl mx-auto">
-              Professional student fees and income tax calculator with advanced analytics.
-              Upload your data, calculate taxes automatically, and visualize insights.
+              Comprehensive student fee management and tax calculation system.
+              Upload your fee records, automatically calculate taxes, and analyze financial data with beautiful visualizations.
             </p>
           </div>
 
